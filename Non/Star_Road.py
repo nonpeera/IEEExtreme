@@ -73,3 +73,5 @@ for _ in range(N - 1):
 # Calculate and output the maximum length of the optimal path
 max_length = find_max_dining_experience(LsNode)
 print(max_length)
+
+
