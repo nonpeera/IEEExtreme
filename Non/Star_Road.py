@@ -19,7 +19,7 @@ class Node:
 
 
 class Stack:
-    
+
   def __init__(self):
     self.items = []
 
@@ -46,8 +46,6 @@ class Stack:
 
   def toList(self):
     return self.items
-  
-  
 N = int(input())
 star = [int(x) for x in input().split()]
 LsNode = []
@@ -64,37 +62,3 @@ for i in LsNode:
 
 
 
-def path(start, destination):
-    
-  print("Goal State: " + f.value + "\n")
-  frontier = Stack()
-  frontier.push(start)    # Start with a frontier that contains the initial state.
-  currentNode = Node('')
-  exploreSet = set()      # Start with an empty explored set.
-
-  foundSolution = False
-  while (not frontier.is_empty()):    # If the frontier is empty, then no solution.
-    print("Frontier: " + NodeValue(frontier.toList()))
-    print("Explore: "+ str(exploreSet))
-    print("Current Node: " + currentNode.value + "\n")
-    currentNode = frontier.pop() ;    # Remove a node from the frontier
-    if(currentNode == destination):   # If node contains goal state, return the solution.
-        foundSolution = True
-        break
-    exploreSet.add(currentNode.value)     # Add the node to the explored set
-    for node in currentNode.get_child():  # Expand node
-      node.set_parent(currentNode)        # set Parent Node
-      if (not node in exploreSet) :       # add resulting nodes to the frontier if they aren't already in the explored set
-        frontier.push(node)
-
-  if(foundSolution):
-    print("Frontier: " + NodeValue(frontier.toList()))
-    print("Explore: " + str(exploreSet))
-    print("Current Node: " + currentNode.value)
-    path = currentNode.value
-    while (not currentNode.parent == None):
-      path += " <=== " + currentNode.parent.value+" "
-      currentNode = currentNode.parent
-    print("Found solution : "+path)
-  else:
-    print("There is no solution")
