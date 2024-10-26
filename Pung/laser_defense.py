@@ -1,102 +1,3 @@
-import matplotlib.pyplot as plt
-
-def draw_square_and_lines(size, lines):
-    fig, ax = plt.subplots()
-    
-    # วาดสีเหลี่ยมจัตุรัส
-    square = plt.Rectangle((0, 0), size, size, fill=None, edgecolor='blue', linewidth=2)
-    ax.add_patch(square)
-
-    # วาดเส้น
-    for line in lines:
-        ax.plot([line.x1, line.x2], [line.y1, line.y2], color='red', linewidth=2)
-
-    # กำหนดขอบเขตของแกน
-    ax.set_xlim(-1, size + 1)
-    ax.set_ylim(-1, size + 1)
-    ax.set_aspect('equal', adjustable='box')
-    ax.grid(True)
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
-    plt.title('Square and Lines')
-    plt.show()
-
-class Line:
-    def __init__(self, x1, y1, x2, y2):
-        self.x1, self.y1 = x1, y1
-        self.x2, self.y2 = x2, y2
-
-# ตัวอย่างการใช้
-size = 30  # ขนาดของสีเหลี่ยมจัตุรัส
-lines = [
-    Line(0, 0, 25, 30),
-    Line(0, 0, 30, 10),
-    Line(0, 0, 10, 30),
-    Line(30, 0, 0, 15),
-    Line(30, 0, 20, 30),
-]
-
-draw_square_and_lines(size, lines)
-
-0 0 25 30
-0 0 30 10
-0 0 10 30
-30 0 0 15
-30 0 20 30
-
-0 0 10 20
-0 0 15 20
-0 0 20 10
-20 0 0 15
-20 0 5 20
-20 0 15 20
-
-0
-0
-25
-30
-0
-0
-30
-10
-0
-0
-10
-30
-30
-0
-0
-15
-30
-0
-20
-30
-
-0
-0
-10
-20
-0
-0
-15
-20
-0
-0
-20
-10
-20
-0
-0
-15
-20
-0
-5
-20
-20
-0
-15
-20
-
 def is_inside_rectangle(point, rectangle):
     x, y = point
     x1, y1, x2, y2 = rectangle
@@ -149,6 +50,7 @@ for i in range(M):
 # สร้างดิกชันนารีเพื่อเก็บจำนวนจุดตัดของแต่ละเส้น
 intersection_counts = {i: 0 for i in range(n)}
 
+intersection_points = set()
 # หาจุดตัด
 for i in range(n):
     for j in range(i + 1, n):
@@ -156,9 +58,9 @@ for i in range(n):
         if intersection and is_inside_rectangle(intersection, rectangle):
             intersection_counts[i] += 1
             intersection_counts[j] += 1  # เพิ่มนับให้กับเส้นที่สองด้วย
-
+            intersection_points.add(intersection)
 # แสดงผลจำนวนจุดตัดของแต่ละเส้น
 num_edges = len(intersection_counts)
 for line_index, count in intersection_counts.items():
     num_edges += count
-print(num_edges,len(intersection_counts))
+print(num_edges-len(intersection_points)+1)
