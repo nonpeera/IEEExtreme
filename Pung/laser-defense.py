@@ -51,6 +51,7 @@ for i in range(M):
 intersection_counts = {i: 0 for i in range(n)}
 
 intersection_points = set()
+num_edges = len(intersection_counts)
 # หาจุดตัด
 for i in range(n):
     for j in range(i + 1, n):
@@ -59,9 +60,9 @@ for i in range(n):
             intersection_counts[i] += 1
             intersection_counts[j] += 1  # เพิ่มนับให้กับเส้นที่สองด้วย
             intersection_points.add(intersection)
-# แสดงผลจำนวนจุดตัดของแต่ละเส้น
-num_edges = len(intersection_counts)
-for line_index, count in intersection_counts.items():
-    num_edges += count
-print(len(intersection_counts.items()))
+   
+    num_edges += intersection_counts[i]
+    
+    
+
 print(num_edges-len(intersection_points)+1)
