@@ -1,54 +1,36 @@
-from bisect import bisect_left
+from sys import setrecursionlimit, stdin, stdout
+setrecursionlimit(10000000)
 
-def find_longest_path(graph, stars, N):
-    # Optimized LIS calculation using binary search, O(L log L)
-    def find_increasing_seq_length(arr):
-        if not arr:
-            return 0
-        lis = []
-        for value in arr:
-            pos = bisect_left(lis, value)
-            # Replace or append value in lis
-            if pos < len(lis):
-                lis[pos] = value
-            else:
-                lis.append(value)
-        return len(lis)
-
-    def dfs(node, parent, path):
-        nonlocal max_length
-        
-        # Add current node's star to path
-        path.append(stars[node])
-        
-        # Calculate the LIS length for the current path
-        max_length = max(max_length, find_increasing_seq_length(path))
-        
-        # Explore all child nodes
-        for next_node in graph[node]:
-            if next_node != parent:
-                dfs(next_node, node, path)
-        
-        # Backtrack - remove the current node from path
-        path.pop()
-
-    max_length = 1
+def dfs(city, last_star):
+    if dp[city] != -1:
+        return dp[city]
     
-    # Try starting DFS from each node
-    for start in range(N):
-        dfs(start, -1, [])
+    max_restaurants = 1
+    for neighbor in adj[city]:
+        if stars[neighbor] > last_star:
+            max_restaurants = max(max_restaurants, 1 + dfs(neighbor, stars[neighbor]))
     
-    return max_length
+    dp[city] = max_restaurants
+    return dp[city]
 
-# Input processing
+# Input
 N = int(input())
-stars = list(map(int, input().split()))
+adj = [[] for _ in range(N + 1)]
+stars = [0] * (N + 1)
+dp = [-1] * (N + 1)
 
-# Create adjacency list for the tree
-graph = [[] for _ in range(N)]
+# Read stars array
+stars = [0] + list(map(int, input().split()))
+
+# Read edges
 for _ in range(N - 1):
-    a, b = map(lambda x: int(x) - 1, input().split())
-    graph[a].append(b)
-    graph[b].append(a)
+    u, v = map(int, input().split())
+    adj[u].append(v)
+    adj[v].append(u)
 
-print(find_longest_path(graph, stars, N))
+# Calculate maximum path
+max_path = 0
+for i in range(1, N + 1):
+    max_path = max(max_path, dfs(i, -1))
+
+print(max_path)
