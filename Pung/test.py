@@ -5,11 +5,8 @@ from shapely.ops import unary_union
 L, N, M = map(int, input().split())
 
 square = box(0, 0, L, L)
-print(square)
 num_lines = N+M
 lines = []
-laser_A = []
-laser_B = []
 # รับพิกัดของเส้น
 for i in range(N):
     direction, C = input().split()
@@ -19,7 +16,6 @@ for i in range(N):
         
         # เช็คว่าเส้นอยู่ภายในหรือมีส่วนตัดกับสี่เหลี่ยมไหม
         if square.intersects(line):
-            laser_A.append(line.intersection(square))
             lines.append(line.intersection(square))
             
     else:
@@ -27,7 +23,6 @@ for i in range(N):
         
         # เช็คว่าเส้นอยู่ภายในหรือมีส่วนตัดกับสี่เหลี่ยมไหม
         if square.intersects(line):
-            laser_A.append(line.intersection(square))
             lines.append(line.intersection(square))
             
 for i in range(M):
@@ -38,7 +33,6 @@ for i in range(M):
         
         # เช็คว่าเส้นอยู่ภายในหรือมีส่วนตัดกับสี่เหลี่ยมไหม
         if square.intersects(line):
-            laser_A.append(line.intersection(square))
             lines.append(line.intersection(square))
             
     else:
@@ -46,7 +40,6 @@ for i in range(M):
         
         # เช็คว่าเส้นอยู่ภายในหรือมีส่วนตัดกับสี่เหลี่ยมไหม
         if square.intersects(line):
-            laser_A.append(line.intersection(square))
             lines.append(line.intersection(square))
     
         
@@ -54,7 +47,6 @@ for i in range(M):
 
 
 union_lines = unary_union(lines)
-
 # คำนวณจุดตัดและจำนวนเส้นขอบใหม่
 vertices = set()
 edges_count = 0
@@ -70,7 +62,7 @@ for geom in union_lines.geoms:
 
 # คำนวณจำนวนช่องตามสูตร V - E + C + 1
 regions_count = edges_count - len(vertices) + 1 
-
+print(edges_count,len(vertices))
 # แสดงผลลัพธ์
 print(regions_count)
 
