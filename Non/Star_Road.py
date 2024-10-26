@@ -1,64 +1,77 @@
+from collections import deque
 
 class Node:
-
-    def __init__(self,index,star):
+    def __init__(self, index, star):
         self.index = index
-        self.star = star 
+        self.star = star
         self.child = []
-        self.parent = None
-    def add_child(self,child):
+
+    def add_child(self, child):
         self.child.append(child)
-    def set_parent(self,parent):
-        self.parent = parent
-    def get_child (self):
+
+    def get_child(self):
         return self.child
-    def get_index (self):
-        return self.index
-    def get_star (self):
+
+    def get_star(self):
         return self.star
 
+    def has_child(self):
+        return len(self.child) > 0
 
-class Stack:
+def max_restaurant_path(sequence):
+    n = len(sequence)
+    if n == 0:
+        return 0
+    lis = [1] * n  # Initial lengths of LIS for each position
+    for i in range(1, n):
+        for j in range(i):
+            if sequence[i] > sequence[j]:
+                lis[i] = max(lis[i], lis[j] + 1)
+    return max(lis)
 
-  def __init__(self):
-    self.items = []
+def find_all_paths(start_node):
+    all_paths = []
+    current_path = []
+    visited = set()
 
-  def is_empty(self):
-    return len(self.items) == 0
+    def dfs(node, parent=None):
+        current_path.append(node.get_star())
+        visited.add(node)
 
-  def push(self, item):
-    self.items.append(item)
+        if not node.has_child() or all(child == parent for child in node.get_child()):
+            all_paths.append(current_path[:])  # Save current path as a new list
+        else:
+            for child in node.get_child():
+                if child != parent and child not in visited:
+                    dfs(child, node)
 
-  def pop(self):
-    if not self.is_empty():
-      return self.items.pop()
-    else:
-      print("Stack is empty")
+        current_path.pop()
+        visited.remove(node)
 
-  def peek(self):
-    if not self.is_empty():
-      return self.items[-1]
-    else:
-      print("Stack is empty")
+    dfs(start_node)
+    return all_paths
 
-  def size(self):
-    return len(self.items)
+def find_max_dining_experience(LsNode):
+    max_length = 0
+    for start_node in LsNode:
+        all_paths = find_all_paths(start_node)
+        for path in all_paths:
+            max_res = max_restaurant_path(path)
+            max_length = max(max_length, max_res)
+    return max_length
 
-  def toList(self):
-    return self.items
+# Input and setup graph structure
 N = int(input())
-star = [int(x) for x in input().split()]
-LsNode = []
-for i in range(1,N+1):
-    node = Node(i,star[i-1])
-    LsNode.append(node)
+stars = list(map(int, input().split()))
+LsNode = [Node(i + 1, stars[i]) for i in range(N)]
 
-for i in range(N-1):
-    a,b = input().split() 
-    LsNode[int(a)-1].add_child(LsNode[int(b)-1])
-print("------------")
-for i in LsNode:
-    print(i.get_index(),i.get_star())
+for _ in range(N - 1):
+    a, b = map(int, input().split())
+    LsNode[a - 1].add_child(LsNode[b - 1])
+    LsNode[b - 1].add_child(LsNode[a - 1])
 
+# Calculate and output the maximum length of the optimal path
+max_length = find_max_dining_experience(LsNode)
+print(max_length)
 
 
