@@ -34,14 +34,14 @@ n = N+M
 lines = []
 for i in range(N):
     direction, C = input().split()
-    C = float(C)
+    C = int(C)
     if(direction == "U"):
         lines.append(((0, 0), (C, L)))
     else:
         lines.append(((0, 0), (L, C)))
 for i in range(M):
     direction, C = input().split()
-    C = float(C)
+    C = int(C)
     if(direction == "U"):
         lines.append(((L, 0), (C, L)))
     else:

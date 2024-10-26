@@ -1,54 +1,90 @@
 class UnionFind:
-    def __init__(self, n):
-        self.parent = list(range(n))
-        self.rank = [1] * n
+    def __init__(self, size):
+        self.parent = list(range(size))
+        self.rank = [1] * size
+        self.component_count = size
     
-    def find(self, x):
-        if self.parent[x] != x:
-            self.parent[x] = self.find(self.parent[x])  # Path compression
-        return self.parent[x]
+    def find(self, u):
+        if self.parent[u] != u:
+            self.parent[u] = self.find(self.parent[u])
+        return self.parent[u]
     
-    def union(self, x, y):
-        rootX = self.find(x)
-        rootY = self.find(y)
-        if rootX != rootY:
-            if self.rank[rootX] > self.rank[rootY]:
-                self.parent[rootY] = rootX
-            elif self.rank[rootX] < self.rank[rootY]:
-                self.parent[rootX] = rootY
-            else:
-                self.parent[rootY] = rootX
-                self.rank[rootX] += 1
-
-def min_length_for_components(S):
-    N = len(S)
-    results = [0] * (N + 1)  # Store minimum length for each k from 1 to N
-
-    # Try each substring length L from 1 to N
-    for L in range(1, N + 1):
-        union_find = UnionFind(N)
+    def union(self, u, v):
+        root_u = self.find(u)
+        root_v = self.find(v)
         
-        # Connect islands based on the current substring length L
-        for i in range(N - L + 1):
-            T = S[i:i + L]  # substring of length L
-            for j in range(i, i + L - 1):
-                union_find.union(j, j + 1)  # Connect consecutive indices
+        if root_u != root_v:
+            if self.rank[root_u] < self.rank[root_v]:
+                root_u, root_v = root_v, root_u
+            self.parent[root_v] = root_u
+            if self.rank[root_u] == self.rank[root_v]:
+                self.rank[root_u] += 1
+            self.component_count -= 1
 
-        # Count the number of connected components
-        num_components = len(set(union_find.find(x) for x in range(N)))
+    def get_component_count(self):
+        return self.component_count
 
-        # Update the minimum length for the current number of components
-        if results[num_components] == 0:
-            results[num_components] = L
+def get_connected_components(S, T):
+    N = len(S)
+    uf = UnionFind(N)
+    t_len = len(T)
+    
+    # สร้าง pattern matching array
+    pattern_starts = []
+    for i in range(N - t_len + 1):
+        if S[i:i + t_len] == T:
+            pattern_starts.append(i)
+    
+    # รวม components ตาม pattern ที่พบ
+    for start in pattern_starts:
+        for i in range(start, start + t_len - 1):
+            uf.union(i, i + 1)
+    
+    return uf.get_component_count()
 
-    # Fill in any missing values with the last known value (or 0 if not possible)
-    for k in range(1, N + 1):
-        if results[k] == 0:
-            results[k] = results[k - 1]
+def find_minimum_T_length(S, N):
+    result = [0] * N
+    min_len_for_components = [float('inf')] * (N + 1)
+    
+    # สร้าง cache สำหรับเก็บ substrings ที่เคยเจอแล้ว
+    substring_cache = {}
+    
+    for t_len in range(1, N + 1):
+        # ใช้ set เพื่อเก็บ unique substrings
+        seen = set()
+        for start in range(N - t_len + 1):
+            T = S[start:start + t_len]
+            if T in seen:
+                continue
+            seen.add(T)
+            
+            # ใช้ cache ถ้าเคยคำนวณแล้ว
+            cache_key = (T, t_len)
+            if cache_key in substring_cache:
+                components = substring_cache[cache_key]
+            else:
+                components = get_connected_components(S, T)
+                substring_cache[cache_key] = components
+            
+            if components <= N:
+                min_len_for_components[components] = min(min_len_for_components[components], t_len)
+    
+    # ปรับปรุงผลลัพธ์
+    min_so_far = float('inf')
+    for k in range(N, 0, -1):
+        min_so_far = min(min_so_far, min_len_for_components[k])
+        result[k - 1] = min_so_far if min_so_far != float('inf') else 0
+    
+    return result
 
-    # Print the result for each k = 1 to N
-    print(" ".join(map(str, results[1:])))
+# Test case
+test_input = "aabcabcaa"
+N = len(test_input)
+result = find_minimum_T_length(test_input, N)
+print(" ".join(map(str, result)))  # ควรได้: 9 8 4 6 3 4 2 0 1
 
-# Example usage:
-S = "aabcabcaa"
-min_length_for_components(S)
+# Main program
+S = input().strip()
+N = len(S)
+result = find_minimum_T_length(S, N)
+print(" ".join(map(str, result)))
