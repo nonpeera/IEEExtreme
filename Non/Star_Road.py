@@ -1,94 +1,72 @@
-from collections import defaultdict
-from bisect import bisect_left
+from collections import deque
 
 class Node:
     def __init__(self, index, star):
         self.index = index
         self.star = star
-        self.adj = []  # Changed to adjacency list for cleaner code
-    
-    def add_edge(self, node):
-        self.adj.append(node)
+        self.child = []
 
-def find_longest_increasing_subsequence(sequence):
-    if not sequence:
+    def add_child(self, child):
+        self.child.append(child)
+
+    def get_child(self):
+        return self.child
+
+    def get_star(self):
+        return self.star
+
+    def has_child(self):
+        return len(self.child) > 0
+
+def max_restaurant_path(sequence):
+    n = len(sequence)
+    if n == 0:
         return 0
-    
-    tails = [float('inf')] * len(sequence)
-    tails[0] = sequence[0]
-    length = 1
-    
-    for num in sequence[1:]:
-        if num > tails[length - 1]:
-            tails[length] = num
-            length += 1
-        else:
-            pos = bisect_left(tails, num, 0, length)
-            tails[pos] = num
-    
-    return length
+    lis = [1] * n  # Initial lengths of LIS for each position
+    for i in range(1, n):
+        for j in range(i):
+            if sequence[i] > sequence[j]:
+                lis[i] = max(lis[i], lis[j] + 1)
+    return max(lis)
 
-def find_max_dining_experience(nodes):
-    N = len(nodes)
-    # dp[node][parent] stores the maximum LIS length for the subtree rooted at node
-    dp = defaultdict(lambda: defaultdict(lambda: -1))
-    # paths[node][parent] stores the best path for the subtree
-    paths = defaultdict(lambda: defaultdict(list))
-    
-    def dfs(node_idx, parent_idx, visited):
-        if dp[node_idx][parent_idx] != -1:
-            return dp[node_idx][parent_idx], paths[node_idx][parent_idx]
-        
-        current_node = nodes[node_idx]
-        max_length = 1  # Minimum LIS length is 1 (the node itself)
-        best_path = [current_node.star]
-        
-        # Try all possible paths through children
-        for next_node in current_node.adj:
-            next_idx = next_node.index - 1
-            if next_idx != parent_idx and next_idx not in visited:
-                visited.add(next_idx)
-                sub_length, sub_path = dfs(next_idx, node_idx, visited)
-                visited.remove(next_idx)
-                
-                # Try including current node with the subpath
-                test_path = [current_node.star] + sub_path
-                current_length = find_longest_increasing_subsequence(test_path)
-                
-                if current_length > max_length:
-                    max_length = current_length
-                    best_path = test_path
-        
-        dp[node_idx][parent_idx] = max_length
-        paths[node_idx][parent_idx] = best_path
-        return max_length, best_path
-    
-    # Try starting from each node
-    global_max = 0
-    for start in range(N):
-        visited = {start}
-        length, _ = dfs(start, -1, visited)
-        global_max = max(global_max, length)
-    
-    return global_max
+def find_all_paths_bfs(start_node):
+    all_paths = []
+    queue = deque([(start_node, [start_node.get_star()])])
 
-def main():
-    # Input processing
-    N = int(input())
-    stars = list(map(int, input().split()))
-    
-    # Create nodes
-    nodes = [Node(i + 1, stars[i]) for i in range(N)]
-    
-    # Build the graph
-    for _ in range(N - 1):
-        a, b = map(int, input().split())
-        nodes[a - 1].add_edge(nodes[b - 1])
-        nodes[b - 1].add_edge(nodes[a - 1])
-    
-    # Calculate and output result
-    result = find_max_dining_experience(nodes)
-    print(result)
+    while queue:
+        current_node, current_path = queue.popleft()
+        is_leaf = True
 
-if __name__ == "__main__":
-    main()
+        for child in current_node.get_child():
+            if child not in current_path:  # Avoid cycles
+                new_path = current_path + [child.get_star()]
+                queue.append((child, new_path))
+                is_leaf = False
+
+        if is_leaf:
+            all_paths.append(current_path)
+
+    return all_paths
+
+def find_max_dining_experience(LsNode):
+    max_length = 0
+    for start_node in LsNode:
+        all_paths = find_all_paths_bfs(start_node)
+        for path in all_paths:
+            max_res = max_restaurant_path(path)
+            max_length = max(max_length, max_res)
+    return max_length
+
+# Input and setup graph structure
+N = int(input())
+stars = list(map(int, input().split()))
+LsNode = [Node(i + 1, stars[i]) for i in range(N)]
+
+for _ in range(N - 1):
+    a, b = map(int, input().split())
+    LsNode[a - 1].add_child(LsNode[b - 1])
+    LsNode[b - 1].add_child(LsNode[a - 1])
+
+# Calculate and output the maximum length of the optimal path
+max_length = find_max_dining_experience(LsNode)
+print(max_length)
