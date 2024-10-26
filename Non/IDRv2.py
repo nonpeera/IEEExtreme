@@ -1,66 +1,75 @@
-def get_permutations(n):
-    from itertools import permutations
-    return [''.join(p) for p in permutations(''.join(str(i) for i in range(1, n+1)))]
+from itertools import permutations
 
-def is_valid_sequence(seq):
-    mid = (len(seq) + 1) // 2
-    first_half = seq[:mid]
-    second_half = seq[mid-1:]
-    return (
-        ''.join(sorted(first_half)) == first_half and
-        ''.join(sorted(second_half, reverse=True)) == second_half
-    )
+def is_valid_sequence(perm):
+    n = len(perm)
+    mid = (n + 1) // 2
+    # ใช้ tuple แทน string เพื่อความเร็ว
+    first_half = tuple(sorted(perm[:mid]))
+    second_half = tuple(sorted(perm[mid-1:], reverse=True))
+    return perm[:mid] == first_half and perm[mid-1:] == second_half
 
-def min_swaps(arr1, arr2):
+def min_swaps_optimized(source, target):
     # สร้าง position mapping
-    pos = {val: idx for idx, val in enumerate(arr2)}
-    visited = [False] * len(arr1)
+    pos = {val: idx for idx, val in enumerate(target)}
+    visited = [False] * len(source)
     swaps = 0
     
-    for i in range(len(arr1)):
-        if visited[i] or pos[arr1[i]] == i:
+    for start in range(len(source)):
+        if visited[start] or source[start] == target[start]:
             continue
             
         cycle_size = 0
-        j = i
+        j = start
+        
         while not visited[j]:
             visited[j] = True
-            j = pos[arr1[j]]
+            j = pos[source[j]]
             cycle_size += 1
             
         swaps += cycle_size - 1
-    
+        
     return swaps
 
-def solve(x, y):
-    # สร้าง permutations ทั้งหมด
-    all_perms = get_permutations(x)
+def solve(n, mod):
+    # สร้าง permutations เป็น tuples แทน strings
+    nums = tuple(range(1, n + 1))
+    all_perms = list(permutations(nums))
     
-    # แยก permutations ที่ถูกต้องและไม่ถูกต้อง
+    # แยก permutations เป็น valid และ invalid
     valid_perms = []
     invalid_perms = []
     
+    # ใช้ set เพื่อเก็บ valid perms ที่ unique
+    valid_set = set()
+    
     for perm in all_perms:
         if is_valid_sequence(perm):
-            valid_perms.append(perm)
+            if perm not in valid_set:
+                valid_perms.append(perm)
+                valid_set.add(perm)
         else:
             invalid_perms.append(perm)
-
-    # คำนวณ minimum swaps
+    
+    if not valid_perms:
+        return 0
+    
+    # คำนวณ min swaps แบบ parallel
     total_swaps = 0
+    
     for invalid in invalid_perms:
-        min_swaps_needed = float('inf')
+        min_swaps = float('inf')
         invalid_list = list(invalid)
         
+        # หา min swaps กับ valid perm ที่ใกล้ที่สุด
         for valid in valid_perms:
-            valid_list = list(valid)
-            swaps = min_swaps(invalid_list, valid_list)
-            min_swaps_needed = min(min_swaps_needed, swaps)
+            swaps = min_swaps_optimized(invalid_list, valid)
+            min_swaps = min(min_swaps, swaps)
             
-        total_swaps += min_swaps_needed
-        
-    return total_swaps % y
+        total_swaps = (total_swaps + min_swaps) % mod
+    
+    return total_swaps
 
-# รับ input และแสดงผล
+# รับ input และประมวลผล
 x, y = map(int, input().split())
-print(solve(x, y))
+result = solve(int(x), int(y))
+print(result)
