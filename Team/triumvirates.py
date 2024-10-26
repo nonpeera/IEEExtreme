@@ -35,7 +35,6 @@ def main():
     # Input parsing
     N = int(input().strip())
     points = [tuple(map(int, input().strip().split())) for _ in range(N)]
-    
     # Group points
     groups = group_points(points)
     
