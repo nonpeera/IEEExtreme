@@ -63,4 +63,5 @@ for i in range(n):
 num_edges = len(intersection_counts)
 for line_index, count in intersection_counts.items():
     num_edges += count
+print(len(intersection_counts.items()))
 print(num_edges-len(intersection_points)+1)
