@@ -1,46 +1,34 @@
-def solve_tiles_hit(N, K, elasticities):
-    # Create a boolean array to track which tiles are hit
-    # Using array instead of set for better performance
-    hit = [False] * (N + 1)
-    count = 0
-    
-    # For each ball
-    for i in range(K):
-        elasticity = elasticities[i]
-        # Mark all tiles that will be hit by this ball
-        # Starting from elasticity, and moving in multiples
-        pos = elasticity
-        while pos <= N:
-            if not hit[pos]:  # Only count if not already hit
-                hit[pos] = True
-                count += 1
-            pos += elasticity
-    
-    return count
+import math
+from itertools import combinations
 
-def main():
-    # Read input
-    N, K = map(int, input().split())
-    elasticities = list(map(int, input().split()))
-    
-    # Input validation
-    assert 1 <= N <= 10**14, "N must be between 1 and 10^14"
-    assert 1 <= K <= 100, "K must be between 1 and 100"
-    assert len(elasticities) == K, "Must have K elasticities"
-    for E in elasticities:
-        assert 1 <= E <= 1000, "Each elasticity must be between 1 and 1000"
-    
-    # Check GCD constraint
-    for i in range(K):
-        for j in range(i + 1, K):
-            assert math.gcd(elasticities[i], elasticities[j]) == 1, "GCD of any two elasticities must be 1"
-    
-    # Get and print result
-    result = solve_tiles_hit(N, K, elasticities)
-    print(result)
+def lcm(a, b):
+    return (a * b) // math.gcd(a, b)
 
-if __name__ == "__main__":
-    import math
-    main()
+def count_hit_tiles(N, elasticities):
+    unique_tiles = 0
+    K = len(elasticities)
+    
+    # Iterate over combinations of elasticities of size 1 to 5 for inclusion-exclusion
+    for r in range(1, min(K, 5) + 1):
+        for combo in combinations(elasticities, r):
+            # Calculate LCM of the current combination
+            current_lcm = combo[0]
+            for e in combo[1:]:
+                current_lcm = lcm(current_lcm, e)
+                # If LCM exceeds N, break early
+                if current_lcm > N:
+                    break
+            
+            # If LCM is within bounds, apply inclusion-exclusion
+            if current_lcm <= N:
+                hit_count = N // current_lcm
+                if r % 2 == 1:
+                    unique_tiles += hit_count  # Add for odd size of combination
+                else:
+                    unique_tiles -= hit_count  # Subtract for even size of combination
 
+    return unique_tiles
 
+N, K = map(int, input().split())
+elasticities = list(map(int, input().split()))
+print(count_hit_tiles(N, elasticities))  # Output should be 12

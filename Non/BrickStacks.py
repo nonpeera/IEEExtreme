@@ -1,33 +1,32 @@
+import bisect
+
 def arrange_bricks(N, x, lengths):
-    # Step 1: Sort the lengths of the bricks
+    # Step 1: Sort the lengths of the bricks in ascending order
     lengths.sort()
     
-    # Step 2: List to hold stacks
+    # Step 2: List to hold the top brick of each stack
+    tops = []
     stacks = []
 
     # Step 3: Go through each brick
     for length in lengths:
-        # Binary search to find the right stack to place the current brick
-        low, high = 0, len(stacks)
-        while low < high:
-            mid = (low + high) // 2
-            if stacks[mid][-1] + x <= length:
-                high = mid  # Look for a lower stack
-            else:
-                low = mid + 1  # Look for a higher stack
+        # Use binary search to find the leftmost stack whose top brick + x <= current brick
+        pos = bisect.bisect_left(tops, length - x)
         
-        # If we found a valid stack to place the brick
-        if low < len(stacks):
-            stacks[low].append(length)
+        if pos < len(tops):  # If we found a suitable stack
+            stacks[pos].append(length)  # Place brick on this stack
+            tops[pos] = length  # Update the top of this stack
         else:
-            stacks.append([length])  # Start a new stack with the current brick
-    
-    # Step 4: Print the results
+            # If no suitable stack, create a new stack
+            stacks.append([length])
+            tops.append(length)
+
+    # Step 4: Print the results in the required format
     print(len(stacks))  # Number of stacks
     for stack in stacks:
-        print(len(stack), ' '.join(map(str, reversed(stack))))  # Print the stack from biggest to smallest
+        print(len(stack), ' '.join(map(str, reversed(stack))))  # Number of bricks and the bricks in the stack in descending order
 
 # Input reading
-N, x = list(map(int, input().split()))
+N, x = map(int, input().split())
 lengths = list(map(int, input().split()))
 arrange_bricks(N, x, lengths)

@@ -1,60 +1,58 @@
-def probability_of_alice_winning(R1, B1, R2, B2):
-    # Memoization table to store probabilities
-    dp = [[[[[None for _ in range(2)] for _ in range(B2 + 1)] for _ in range(R2 + 1)] for _ in range(B1 + 1)] for _ in range(R1 + 1)]
-
-    def compute_probability(r1, b1, r2, b2, turn):
-        # Check if the probability is already computed
-        if dp[r1][b1][r2][b2][turn] is not None:
-            return dp[r1][b1][r2][b2][turn]
+def optimal_play(R1, B1, R2, B2, is_player_A):
+    # Memoization dictionary using tuples as keys
+    memo = {}
+    
+    def solve(R1, B1, R2, B2, is_A_turn, is_A_role):
+        if (R1 == 0 and B1 == 0):
+            return 1.0 if is_A_role else 0.0
+        if (R2 == 0 and B2 == 0):
+            return 0.0 if is_A_role else 1.0
+            
+        state = (R1, B1, R2, B2, is_A_turn, is_A_role)
+        if state in memo:
+            return memo[state]
+            
+        # Current player's stones
+        curr_R = R1 if is_A_turn else R2
+        curr_B = B1 if is_A_turn else B2
+        # Other player's stones
+        other_R = R2 if is_A_turn else R1
+        other_B = B2 if is_A_turn else B1
         
-        # Base cases
-        if r1 == 0 or b1 == 0:
-            dp[r1][b1][r2][b2][turn] = 0.0  # Alice loses
-            return 0.0
-        if r2 == 0 or b2 == 0:
-            dp[r1][b1][r2][b2][turn] = 1.0  # Alice wins
-            return 1.0
+        prob = 0.0
+        choices = 0
         
-        if turn == 0:  # Alice's turn as Player A
-            # Alice can choose red or blue
-            prob_red = r1 / (r1 + b1)
-            prob_blue = b1 / (r1 + b1)
-            
-            # If she chooses red
-            guess_red_correct = prob_red * compute_probability(r1 - 1, b1, r2, b2, 1 - turn)
-            guess_red_wrong = prob_red * compute_probability(r1, b1, r2 - 1, b2, 1 - turn)
-            
-            # If she chooses blue
-            guess_blue_correct = prob_blue * compute_probability(r1, b1 - 1, r2, b2, 1 - turn)
-            guess_blue_wrong = prob_blue * compute_probability(r1, b1, r2, b2 - 1, 1 - turn)
-            
-            result = (guess_red_correct + guess_red_wrong + guess_blue_correct + guess_blue_wrong) / 2
+        # Try red stone
+        if curr_R > 0:
+            choices += 1
+            # Probability of opponent guessing red
+            if other_R > 0 or other_B > 0:
+                next_R1 = R1 - 1 if is_A_turn else R1
+                next_R2 = R2 if is_A_turn else R2 - 1
+                prob += 0.5 * solve(next_R1, B1, next_R2, B2, not is_A_turn, not is_A_role)
+                prob += 0.5 * solve(next_R1, B1, next_R2, B2, not is_A_turn, not is_A_role)
+                
+        # Try blue stone
+        if curr_B > 0:
+            choices += 1
+            # Probability of opponent guessing blue
+            if other_R > 0 or other_B > 0:
+                next_B1 = B1 - 1 if is_A_turn else B1
+                next_B2 = B2 if is_A_turn else B2 - 1
+                prob += 0.5 * solve(R1, next_B1, R2, next_B2, not is_A_turn, not is_A_role)
+                prob += 0.5 * solve(R1, next_B1, R2, next_B2, not is_A_turn, not is_A_role)
         
-        else:  # Bob's turn as Player A
-            # Bob will try to minimize Alice's chance
-            prob_red = r2 / (r2 + b2)
-            prob_blue = b2 / (r2 + b2)
+        if choices > 0:
+            prob /= choices
             
-            # If Bob chooses red
-            guess_red_correct = prob_red * compute_probability(r1, b1, r2 - 1, b2, 1 - turn)
-            guess_red_wrong = prob_red * compute_probability(r1 - 1, b1, r2, b2, 1 - turn)
-            
-            # If Bob chooses blue
-            guess_blue_correct = prob_blue * compute_probability(r1, b1, r2, b2 - 1, 1 - turn)
-            guess_blue_wrong = prob_blue * compute_probability(r1, b1 - 1, r2, b2, 1 - turn)
-            
-            result = (guess_red_correct + guess_red_wrong + guess_blue_correct + guess_blue_wrong) / 2
-
-        # Memoize and return result
-        dp[r1][b1][r2][b2][turn] = result
-        return result
-
-    # Start the calculation from the initial game state with Alice as Player A (turn = 0)
-    return compute_probability(R1, B1, R2, B2, 0)
+        memo[state] = prob
+        return prob
+    
+    return solve(R1, B1, R2, B2, True, is_player_A)
 
 # Read input
 R1, B1, R2, B2 = map(int, input().split())
-result = probability_of_alice_winning(R1, B1, R2, B2)
 
-# Print the result with the required precision
-print(result)
+# Calculate Alice's winning probability
+result = optimal_play(R1, B1, R2, B2, True)
+print(f"{result:.9f}")
